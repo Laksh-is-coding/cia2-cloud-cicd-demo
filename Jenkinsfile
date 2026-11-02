@@ -17,5 +17,13 @@ pipeline {
                 bat 'mvn -B clean verify'
             }
         }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    bat 'mvn -B sonar:sonar -Dsonar.projectKey=cia2-cloud-cicd-demo'
+                }
+            }
+        }
     }
 }
