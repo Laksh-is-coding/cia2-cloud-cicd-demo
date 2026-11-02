@@ -46,12 +46,15 @@ pipeline {
                 ]) {
                     bat '"%DOCKER_EXE%" build -t "%DOCKER_IMAGE%" .'
 
-                    powershell '''
-                        $ErrorActionPreference = 'Stop'
-                        $env:DH_TOKEN | & $env:DOCKER_EXE login --username $env:DH_USER --password-stdin
-                        if ($LASTEXITCODE -ne 0) {
-                            exit $LASTEXITCODE
-                        }
+                    bat '''
+                        @echo off
+                        setlocal
+                        set "TOKEN_FILE=%WORKSPACE%\\docker-token.tmp"
+                        <nul set /p "=%DH_TOKEN%" > "%TOKEN_FILE%"
+                        "%DOCKER_EXE%" login --username "%DH_USER%" --password-stdin < "%TOKEN_FILE%"
+                        set "LOGIN_EXIT=%ERRORLEVEL%"
+                        del "%TOKEN_FILE%" >nul 2>&1
+                        exit /b %LOGIN_EXIT%
                     '''
 
                     bat '"%DOCKER_EXE%" push "%DOCKER_IMAGE%"'
