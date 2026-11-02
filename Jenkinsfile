@@ -26,9 +26,17 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+        stage('Docker Build and Push') {
             steps {
-                bat '"C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t cia2-cloud-cicd-demo:1.0 .'
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKERHUB_USER',
+                    passwordVariable: 'DOCKERHUB_TOKEN'
+                )]) {
+                    bat '"C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t %DOCKERHUB_USER%/cia2-cloud-cicd-demo:1.0 .'
+                    bat 'echo %DOCKERHUB_TOKEN% | "C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" login -u %DOCKERHUB_USER% --password-stdin'
+                    bat '"C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" push %DOCKERHUB_USER%/cia2-cloud-cicd-demo:1.0'
+                }
             }
         }
     }
