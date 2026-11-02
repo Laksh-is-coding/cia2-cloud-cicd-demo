@@ -5,43 +5,64 @@ pipeline {
         maven 'maven'
     }
 
+    environment {
+        DOCKERHUB_USER = 'laksh4950'
+        DOCKER_IMAGE = 'laksh4950/cia2-cloud-cicd-demo:1.0'
+        DOCKER_EXE = 'C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+    }
+
     stages {
-        stage('Secret Scan - Gitleaks') {
+        stage('Gitleaks') {
             steps {
-                bat '"C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run --rm -v "%CD%:/repo" zricethezav/gitleaks:latest detect --source=/repo --no-git --redact --exit-code 1'
+                bat 'gitleaks detect --source . --no-git'
             }
         }
 
-        stage('Build and Test') {
+        stage('Maven Clean Verify') {
             steps {
-                bat 'mvn -B clean verify'
+                bat 'mvn clean verify'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    bat 'mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.3.0.6276:sonar -Dsonar.projectKey=cia2-cloud-cicd-demo'
+                    bat 'mvn sonar:sonar -Dsonar.projectKey=cia2-cloud-cicd-demo'
                 }
             }
         }
 
         stage('Docker Build and Push') {
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerhub-creds',
-                        usernameVariable: 'DOCKERHUB_USER',
-                        passwordVariable: 'DOCKERHUB_TOKEN'
-                    )
-                ]) {
-                    bat '"C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t %DOCKERHUB_USER%/cia2-cloud-cicd-demo:1.0 .'
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'dockerhub-creds',
+                            usernameVariable: 'DOCKERHUB_USER',
+                            passwordVariable: 'DOCKERHUB_TOKEN'
+                        )
+                    ]) {
+                        bat "\"${DOCKER_EXE}\" build -t ${DOCKER_IMAGE} ."
 
-                    bat '@echo off\r\necho %DOCKERHUB_TOKEN% | "C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" login -u %DOCKERHUB_USER% --password-stdin'
+                        powershell '''
+                            $ErrorActionPreference = "Stop"
+                            $env:DOCKERHUB_TOKEN |
+                                & $env:DOCKER_EXE login --username $env:DOCKERHUB_USER --password-stdin
+                            if ($LASTEXITCODE -ne 0) {
+                                exit $LASTEXITCODE
+                            }
+                        '''
 
-                    bat '"C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" push %DOCKERHUB_USER%/cia2-cloud-cicd-demo:1.0'
+                        bat "\"${DOCKER_EXE}\" push ${DOCKER_IMAGE}"
+                    }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished.'
         }
     }
 }
