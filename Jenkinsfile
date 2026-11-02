@@ -25,5 +25,11 @@ pipeline {
                 }
             }
         }
+
+        stage('Docker Build') {
+            steps {
+                bat '"C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" build -t cia2-cloud-cicd-demo:1.0 .'
+            }
+        }
     }
 }
