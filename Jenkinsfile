@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Secret Scan - Gitleaks') {
             steps {
-                bat 'docker run --rm -v "%CD%:/repo" zricethezav/gitleaks:latest detect --source=/repo --no-git --redact --exit-code 1'
+                bat '"C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe" run --rm -v "%CD%:/repo" zricethezav/gitleaks:latest detect --source=/repo --no-git --redact --exit-code 1'
             }
         }
 
