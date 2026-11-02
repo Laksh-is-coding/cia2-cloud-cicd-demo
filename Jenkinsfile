@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         MAVEN_CMD = 'C:\\Users\\darks\\Downloads\\apache-maven-3.10.0-bin\\apache-maven-3.10.0\\bin\\mvn.cmd'
-        DOCKERHUB_USER = 'laksh4950'
         DOCKER_IMAGE = 'laksh4950/cia2-cloud-cicd-demo:1.0'
         DOCKER_EXE = 'C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
         GITLEAKS_EXE = 'C:\\Users\\darks\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gitleaks.Gitleaks_Microsoft.Winget.Source_8wekyb3d8bbwe\\gitleaks.exe'
@@ -41,16 +40,18 @@ pipeline {
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'dockerhub-creds',
-                        usernameVariable: 'DOCKERHUB_USER',
-                        passwordVariable: 'DOCKERHUB_TOKEN'
+                        usernameVariable: 'DH_USER',
+                        passwordVariable: 'DH_TOKEN'
                     )
                 ]) {
                     bat '"%DOCKER_EXE%" build -t "%DOCKER_IMAGE%" .'
 
                     powershell '''
-                        $env:DOCKERHUB_TOKEN | & $env:DOCKER_EXE login `
-                            --username $env:DOCKERHUB_USER `
-                            --password-stdin
+                        $ErrorActionPreference = 'Stop'
+                        $env:DH_TOKEN | & $env:DOCKER_EXE login --username $env:DH_USER --password-stdin
+                        if ($LASTEXITCODE -ne 0) {
+                            exit $LASTEXITCODE
+                        }
                     '''
 
                     bat '"%DOCKER_EXE%" push "%DOCKER_IMAGE%"'
