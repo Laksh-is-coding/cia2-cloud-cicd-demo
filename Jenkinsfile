@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        MAVEN_CMD = 'C:\\Program Files\\Apache\\maven\\bin\\mvn.cmd'
+        MAVEN_CMD = 'C:\\Users\\darks\\Downloads\\apache-maven-3.10.0-bin\\apache-maven-3.10.0\\bin\\mvn.cmd'
         DOCKERHUB_USER = 'laksh4950'
         DOCKER_IMAGE = 'laksh4950/cia2-cloud-cicd-demo:1.0'
         DOCKER_EXE = 'C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
