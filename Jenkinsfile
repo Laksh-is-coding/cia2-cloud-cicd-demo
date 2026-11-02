@@ -1,11 +1,8 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven'
-    }
-
     environment {
+        MAVEN_CMD = 'C:\\Program Files\\Apache\\maven\\bin\\mvn.cmd'
         DOCKERHUB_USER = 'laksh4950'
         DOCKER_IMAGE = 'laksh4950/cia2-cloud-cicd-demo:1.0'
         DOCKER_EXE = 'C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
@@ -27,14 +24,14 @@ pipeline {
 
         stage('Maven Build and Test') {
             steps {
-                bat 'mvn clean verify'
+                bat '"%MAVEN_CMD%" clean verify'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    bat 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=cia2-cloud-cicd-demo'
+                    bat '"%MAVEN_CMD%" org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=cia2-cloud-cicd-demo'
                 }
             }
         }
