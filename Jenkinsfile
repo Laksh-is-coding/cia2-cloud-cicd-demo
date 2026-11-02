@@ -9,12 +9,13 @@ pipeline {
         DOCKERHUB_USER = 'laksh4950'
         DOCKER_IMAGE = 'laksh4950/cia2-cloud-cicd-demo:1.0'
         DOCKER_EXE = 'C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+        GITLEAKS_EXE = 'C:\\Users\\darks\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gitleaks.Gitleaks_Microsoft.Winget.Source_8wekyb3d8bbwe\\gitleaks.exe'
     }
 
     stages {
         stage('Gitleaks') {
             steps {
-                bat 'gitleaks detect --source . --no-git'
+                bat '"%GITLEAKS_EXE%" detect --source . --no-git'
             }
         }
 
@@ -42,7 +43,7 @@ pipeline {
                             passwordVariable: 'DOCKERHUB_TOKEN'
                         )
                     ]) {
-                        bat "\"${DOCKER_EXE}\" build -t ${DOCKER_IMAGE} ."
+                        bat '"%DOCKER_EXE%" build -t %DOCKER_IMAGE% .'
 
                         powershell '''
                             $ErrorActionPreference = "Stop"
@@ -53,7 +54,7 @@ pipeline {
                             }
                         '''
 
-                        bat "\"${DOCKER_EXE}\" push ${DOCKER_IMAGE}"
+                        bat '"%DOCKER_EXE%" push %DOCKER_IMAGE%'
                     }
                 }
             }
