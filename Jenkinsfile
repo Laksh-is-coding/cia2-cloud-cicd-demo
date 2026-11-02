@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven'
+    }
+
     environment {
         DOCKERHUB_USER = 'laksh4950'
         DOCKER_IMAGE = 'laksh4950/cia2-cloud-cicd-demo:1.0'
