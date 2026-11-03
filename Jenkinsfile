@@ -15,6 +15,8 @@ pipeline {
         MAVEN_HOME = 'C:\\Users\\darks\\Downloads\\apache-maven-3.10.0-bin\\apache-maven-3.10.0'
         GITLEAKS_EXE = 'C:\\Users\\darks\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gitleaks.Gitleaks_Microsoft.Winget.Source_8wekyb3d8bbwe\\gitleaks.exe'
         AZ_EXE = 'C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd'
+
+        AZURE_TENANT_ID = '5beb351c-3fb8-418f-b612-fe36ace96ef3'
     }
 
     stages {
@@ -97,6 +99,10 @@ pipeline {
                             credentialsId: 'azure-cia2-sp',
                             usernameVariable: 'AZURE_CLIENT_ID',
                             passwordVariable: 'AZURE_CLIENT_SECRET'
+                        ),
+                        string(
+                            credentialsId: 'azure-subscription-id',
+                            variable: 'AZURE_SUBSCRIPTION_ID'
                         )
                     ]) {
                         withEnv(["DEPLOY_IMAGE=${DOCKER_IMAGE}:${imageTag}"]) {
