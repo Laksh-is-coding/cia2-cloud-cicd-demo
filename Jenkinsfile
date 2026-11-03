@@ -7,11 +7,12 @@ pipeline {
     }
 
     environment {
+        DOCKER_EXE = 'C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+
         DOCKER_IMAGE = 'laksh4950/cia2-cloud-cicd-demo'
         AZURE_RESOURCE_GROUP = 'cia2-cloud-cicd-demo-rg'
         AZURE_CONTAINER_APP = 'cia2-cloud-cicd-demo'
 
-        // Tools installed on your Windows Jenkins machine
         MAVEN_HOME = 'C:\\Users\\darks\\Downloads\\apache-maven-3.10.0-bin\\apache-maven-3.10.0'
         GITLEAKS_EXE = 'C:\\Users\\darks\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gitleaks.Gitleaks_Microsoft.Winget.Source_8wekyb3d8bbwe\\gitleaks.exe'
         AZ_EXE = 'C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd'
@@ -28,6 +29,7 @@ pipeline {
             steps {
                 bat '''
                     "%GITLEAKS_EXE%" detect --source . --redact --exit-code 1
+                    if errorlevel 1 exit /b 1
                 '''
             }
         }
@@ -36,6 +38,7 @@ pipeline {
             steps {
                 bat '''
                     "%MAVEN_HOME%\\bin\\mvn.cmd" clean verify
+                    if errorlevel 1 exit /b 1
                 '''
             }
         }
@@ -45,6 +48,7 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     bat '''
                         "%MAVEN_HOME%\\bin\\mvn.cmd" org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=cia2-cloud-cicd-demo
+                        if errorlevel 1 exit /b 1
                     '''
                 }
             }
@@ -64,16 +68,20 @@ pipeline {
                     ]) {
                         bat """
                             @echo on
-                            docker login --username "%DOCKERHUB_USER%" --password "%DOCKERHUB_PASSWORD%"
+
+                            "%DOCKER_EXE%" version
                             if errorlevel 1 exit /b 1
 
-                            docker buildx build --platform linux/amd64 --load -t "${DOCKER_IMAGE}:${imageTag}" .
+                            "%DOCKER_EXE%" login --username "%DOCKERHUB_USER%" --password "%DOCKERHUB_PASSWORD%"
                             if errorlevel 1 exit /b 1
 
-                            docker push "${DOCKER_IMAGE}:${imageTag}"
+                            "%DOCKER_EXE%" build -t "${DOCKER_IMAGE}:${imageTag}" .
                             if errorlevel 1 exit /b 1
 
-                            docker logout
+                            "%DOCKER_EXE%" push "${DOCKER_IMAGE}:${imageTag}"
+                            if errorlevel 1 exit /b 1
+
+                            "%DOCKER_EXE%" logout
                         """
                     }
                 }
