@@ -11,8 +11,8 @@ public class StatusController {
     @GetMapping("/api/status")
     public Map<String, String> status() {
         return Map.of(
-            "message", "Hello from the updated cloud CI/CD demo!",
-            "version", "v1"
+            "message", "Hello from the updated cloud CI/CD demo?!",
+            "version", "v3"
         );
     }
 }
