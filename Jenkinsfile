@@ -74,11 +74,10 @@ pipeline {
                             "%DOCKER_EXE%" login --username "%DOCKERHUB_USER%" --password "%DOCKERHUB_PASSWORD%"
                             if errorlevel 1 exit /b 1
 
-                            "%DOCKER_EXE%" buildx build ^
-                                --platform linux/amd64 ^
-                                --provenance=false ^
-                                --sbom=false ^
-                                --output "type=image,name=${DOCKER_IMAGE}:${imageTag},push=true,oci-mediatypes=true,compression=gzip" .
+                            "%DOCKER_EXE%" build --platform linux/amd64 -t "${DOCKER_IMAGE}:${imageTag}" .
+                            if errorlevel 1 exit /b 1
+
+                            "%DOCKER_EXE%" push "${DOCKER_IMAGE}:${imageTag}"
                             if errorlevel 1 exit /b 1
 
                             "%DOCKER_EXE%" logout
