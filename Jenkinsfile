@@ -3,9 +3,15 @@ pipeline {
 
     environment {
         MAVEN_CMD = 'C:\\Users\\darks\\Downloads\\apache-maven-3.10.0-bin\\apache-maven-3.10.0\\bin\\mvn.cmd'
-        DOCKER_IMAGE = 'laksh4950/cia2-cloud-cicd-demo:1.0'
         DOCKER_EXE = 'C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
         GITLEAKS_EXE = 'C:\\Users\\darks\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gitleaks.Gitleaks_Microsoft.Winget.Source_8wekyb3d8bbwe\\gitleaks.exe'
+        AZ_EXE = 'C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd'
+
+        DOCKER_IMAGE_NAME = 'laksh4950/cia2-cloud-cicd-demo'
+        AZURE_RESOURCE_GROUP = 'cia2-cloud-cicd-demo-rg'
+        AZURE_CONTAINER_APP = 'cia2-cloud-cicd-demo'
+        AZURE_TENANT_ID = '5beb351c-3fb8-418f-b612-fe36ace96ef3'
+        AZURE_SUBSCRIPTION_ID = '92649c85-7f8f-4e68-9bd0-fa87cb83d946'
     }
 
     stages {
@@ -37,6 +43,11 @@ pipeline {
 
         stage('Docker Build and Push') {
             steps {
+                script {
+                    env.IMAGE_TAG = "${env.BUILD_NUMBER}"
+                    env.DOCKER_IMAGE = "${env.DOCKER_IMAGE_NAME}:${env.IMAGE_TAG}"
+                }
+
                 withCredentials([
                     usernamePassword(
                         credentialsId: 'dockerhub-creds',
@@ -61,11 +72,43 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to Azure Container Apps') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'azure-cia2-sp',
+                        usernameVariable: 'AZURE_CLIENT_ID',
+                        passwordVariable: 'AZURE_CLIENT_SECRET'
+                    )
+                ]) {
+                    bat '''
+                        @echo off
+                        "%AZ_EXE%" login --service-principal ^
+                            --username "%AZURE_CLIENT_ID%" ^
+                            --password "%AZURE_CLIENT_SECRET%" ^
+                            --tenant "%AZURE_TENANT_ID%"
+                        if errorlevel 1 exit /b 1
+
+                        "%AZ_EXE%" account set --subscription "%AZURE_SUBSCRIPTION_ID%"
+                        if errorlevel 1 exit /b 1
+
+                        "%AZ_EXE%" containerapp update ^
+                            --name "%AZURE_CONTAINER_APP%" ^
+                            --resource-group "%AZURE_RESOURCE_GROUP%" ^
+                            --image "%DOCKER_IMAGE%"
+                        if errorlevel 1 exit /b 1
+
+                        "%AZ_EXE%" logout
+                    '''
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully.'
+            echo "Pipeline completed successfully. Deployed image: ${env.DOCKER_IMAGE}"
         }
 
         failure {
