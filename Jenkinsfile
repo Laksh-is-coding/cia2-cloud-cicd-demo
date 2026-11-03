@@ -8,7 +8,6 @@ pipeline {
 
     environment {
         DOCKER_EXE = 'C:\\Users\\darks\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
-
         DOCKER_IMAGE = 'laksh4950/cia2-cloud-cicd-demo'
         AZURE_RESOURCE_GROUP = 'cia2-cloud-cicd-demo-rg'
         AZURE_CONTAINER_APP = 'cia2-cloud-cicd-demo'
@@ -75,10 +74,11 @@ pipeline {
                             "%DOCKER_EXE%" login --username "%DOCKERHUB_USER%" --password "%DOCKERHUB_PASSWORD%"
                             if errorlevel 1 exit /b 1
 
-                            "%DOCKER_EXE%" build -t "${DOCKER_IMAGE}:${imageTag}" .
-                            if errorlevel 1 exit /b 1
-
-                            "%DOCKER_EXE%" push "${DOCKER_IMAGE}:${imageTag}"
+                            "%DOCKER_EXE%" buildx build ^
+                                --platform linux/amd64 ^
+                                --provenance=false ^
+                                --sbom=false ^
+                                --output "type=image,name=${DOCKER_IMAGE}:${imageTag},push=true,oci-mediatypes=true,compression=gzip" .
                             if errorlevel 1 exit /b 1
 
                             "%DOCKER_EXE%" logout
