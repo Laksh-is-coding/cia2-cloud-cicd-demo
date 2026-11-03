@@ -84,6 +84,7 @@ pipeline {
                 ]) {
                     bat '''
                         @echo off
+
                         "%AZ_EXE%" login --service-principal ^
                             --username "%AZURE_CLIENT_ID%" ^
                             --password "%AZURE_CLIENT_SECRET%" ^
@@ -93,10 +94,21 @@ pipeline {
                         "%AZ_EXE%" account set --subscription "%AZURE_SUBSCRIPTION_ID%"
                         if errorlevel 1 exit /b 1
 
+                        echo Updating Azure Container App to image: %DOCKER_IMAGE%
+
                         "%AZ_EXE%" containerapp update ^
                             --name "%AZURE_CONTAINER_APP%" ^
                             --resource-group "%AZURE_RESOURCE_GROUP%" ^
                             --image "%DOCKER_IMAGE%"
+                        if errorlevel 1 exit /b 1
+
+                        echo Azure Container App update command completed successfully.
+
+                        "%AZ_EXE%" containerapp show ^
+                            --name "%AZURE_CONTAINER_APP%" ^
+                            --resource-group "%AZURE_RESOURCE_GROUP%" ^
+                            --query "properties.template.containers[0].image" ^
+                            --output tsv
                         if errorlevel 1 exit /b 1
 
                         "%AZ_EXE%" logout
