@@ -12,7 +12,7 @@ public class StatusController {
     public Map<String, String> status() {
         return Map.of(
             "message", "Hello from the updated cloud CI/CD demo!",
-            "version", "v2"
+            "version", "v1"
         );
     }
 }

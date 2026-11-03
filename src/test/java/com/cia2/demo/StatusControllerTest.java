@@ -22,6 +22,6 @@ class StatusControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message")
                         .value("Hello from the updated cloud CI/CD demo!"))
-                .andExpect(jsonPath("$.version").value("v2"));
+                .andExpect(jsonPath("$.version").value("v1"));
     }
 }

@@ -1,0 +1,23 @@
+---
+- name: Deploy the CI/CD demo to Minikube
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Apply Kubernetes deployment and service
+      ansible.builtin.command:
+        argv:
+          - /mnt/c/Users/darks/AppData/Local/Programs/DockerDesktop/resources/bin/kubectl.exe
+          - apply
+          - -f
+          - C:/Users/darks/CIA2-DevOps/k8s.yaml
+
+    - name: Wait for application deployment to become available
+      ansible.builtin.command:
+        argv:
+          - /mnt/c/Users/darks/AppData/Local/Programs/DockerDesktop/resources/bin/kubectl.exe
+          - rollout
+          - status
+          - deployment/cia2-cloud-cicd-demo
+          - --timeout=120s
