@@ -77,7 +77,6 @@ pipeline {
                             if errorlevel 1 exit /b 1
 
                             "%DOCKER_EXE%" buildx build ^
-                                --builder desktop-linux ^
                                 --platform linux/amd64 ^
                                 --tag "${DOCKER_IMAGE}:${imageTag}" ^
                                 --output "type=registry,compression=gzip,force-compression=true,oci-mediatypes=true" ^
