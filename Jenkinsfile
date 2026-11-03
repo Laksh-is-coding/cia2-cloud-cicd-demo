@@ -70,16 +70,20 @@ pipeline {
                         bat """
                             @echo on
 
-                            "%DOCKER_EXE%" version
+                            "%DOCKER_EXE%" buildx version
                             if errorlevel 1 exit /b 1
 
                             "%DOCKER_EXE%" login --username "%DOCKERHUB_USER%" --password "%DOCKERHUB_PASSWORD%"
                             if errorlevel 1 exit /b 1
 
-                            "%DOCKER_EXE%" build --platform linux/amd64 -t "${DOCKER_IMAGE}:${imageTag}" .
-                            if errorlevel 1 exit /b 1
-
-                            "%DOCKER_EXE%" push "${DOCKER_IMAGE}:${imageTag}"
+                            "%DOCKER_EXE%" buildx build ^
+                                --builder desktop-linux ^
+                                --platform linux/amd64 ^
+                                --tag "${DOCKER_IMAGE}:${imageTag}" ^
+                                --output "type=registry,compression=gzip,force-compression=true,oci-mediatypes=true" ^
+                                --push ^
+                                --progress plain ^
+                                .
                             if errorlevel 1 exit /b 1
 
                             "%DOCKER_EXE%" logout
