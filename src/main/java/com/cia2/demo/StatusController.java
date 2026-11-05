@@ -10,6 +10,7 @@ public class StatusController {
 
     @GetMapping("/api/status")
     public Map<String, String> status() {
+        int unusedValue = 10;
         return Map.of(
             "message", "Hello from the updated cloud CI/CD demo?!",
             "version", "v3"
